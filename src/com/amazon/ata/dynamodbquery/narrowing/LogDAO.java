@@ -1,8 +1,13 @@
 package com.amazon.ata.dynamodbquery.narrowing;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LogDAO {
 
@@ -25,8 +30,19 @@ public class LogDAO {
      * @return the PaginatedQueryList that is returned from the query
      */
     public List<Log> getLogsBetweenTimes(String logLevel, String startTime, String endTime) {
-        // TODO: implement
-        return null;
+        Map<String, AttributeValue> valueMap = new HashMap<>();
+        valueMap.put(":logLevel", new AttributeValue().withS(logLevel));
+        valueMap.put(":startTime", new AttributeValue().withS(startTime));
+        valueMap.put(":endTime", new AttributeValue().withS(endTime));
+
+        DynamoDBQueryExpression<Log> queryExpression = new DynamoDBQueryExpression<Log>()
+                .withKeyConditionExpression(
+                        "log_level = :logLevel and time_stamp between :startTime and :endTime")
+                .withExpressionAttributeValues(valueMap);
+
+        PaginatedQueryList<Log> logList = mapper.query(Log.class, queryExpression);
+
+        return logList;
     }
 
     /**
@@ -37,8 +53,18 @@ public class LogDAO {
      * @return the PaginatedQueryList that is returned from the query
      */
     public List<Log> getLogsBeforeTime(String logLevel, String endTime) {
-        //TODO: implement
-        return null;
+        Map<String, AttributeValue> valueMap = new HashMap<>();
+        valueMap.put(":logLevel", new AttributeValue().withS(logLevel));
+        valueMap.put(":endTime", new AttributeValue().withS(endTime));
+
+        DynamoDBQueryExpression<Log> queryExpression = new DynamoDBQueryExpression<Log>()
+                .withKeyConditionExpression(
+                        "log_level = :logLevel and time_stamp < :endTime")
+                .withExpressionAttributeValues(valueMap);
+
+        PaginatedQueryList<Log> logList = mapper.query(Log.class, queryExpression);
+
+        return logList;
     }
 
     /**
@@ -49,7 +75,17 @@ public class LogDAO {
      * @return the PaginatedQueryList that is returned from the query
      */
     public List getLogsAfterTime(String logLevel, String startTime) {
-        //TODO: implement
-        return null;
+        Map<String, AttributeValue> valueMap = new HashMap<>();
+        valueMap.put(":logLevel", new AttributeValue().withS(logLevel));
+        valueMap.put(":startTime", new AttributeValue().withS(startTime));
+
+        DynamoDBQueryExpression<Log> queryExpression = new DynamoDBQueryExpression<Log>()
+                .withKeyConditionExpression(
+                        "log_level = :logLevel and time_stamp > :startTime")
+                .withExpressionAttributeValues(valueMap);
+
+        PaginatedQueryList<Log> logList = mapper.query(Log.class, queryExpression);
+
+        return logList;
     }
 }
